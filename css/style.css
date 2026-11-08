@@ -128,11 +128,43 @@ button { font: inherit; color: inherit; cursor: pointer; }
 }
 .scene.shown .reveal { opacity: 1; filter: blur(0); transform: none; pointer-events: auto; }
 
-/* Desvanecer como niebla */
+/* Salida: ráfaga de viento que arrastra la niebla hacia la derecha */
 .scene.leaving .reveal {
-  opacity: 0; filter: blur(26px); transform: translateY(-14px) scale(1.06);
+  opacity: 0; filter: blur(24px); transform: translate(110px, -14px) scale(1.06);
   pointer-events: none;
-  transition: opacity 2.1s ease 0s, filter 2.1s ease 0s, transform 2.1s ease 0s;
+  transition: opacity 1.9s ease-in 0s, filter 1.9s ease-in 0s, transform 2.2s cubic-bezier(.3,.1,.8,.6) 0s;
+}
+
+/* ---- Texto letra a letra, como humo ---- */
+.w { display: inline-block; white-space: nowrap; }
+.ch {
+  display: inline-block; opacity: 0; filter: blur(12px);
+  transform: translate(-8px, 10px) scale(1.25);
+  transition:
+    opacity 1.6s ease calc(var(--d, 0s) + var(--ci, 0) * var(--st, .035s)),
+    filter 1.6s ease calc(var(--d, 0s) + var(--ci, 0) * var(--st, .035s)),
+    transform 1.9s ease calc(var(--d, 0s) + var(--ci, 0) * var(--st, .035s));
+}
+/* el contenedor no se desvanece: lo hacen las letras */
+.scene .reveal.split, .scene.shown .reveal.split, .scene.leaving .reveal.split {
+  opacity: 1; filter: none; transform: none; transition: none; pointer-events: auto;
+}
+.scene.shown .reveal .ch, .seq.in .ch { opacity: 1; filter: blur(0); transform: none; }
+.scene.leaving .reveal .ch, .seq.out .ch {
+  opacity: 0; filter: blur(14px);
+  transform: translate(var(--dx, 160px), var(--dy, -20px)) rotate(var(--r, 12deg)) scale(1.6);
+  transition:
+    opacity 1.5s ease-in var(--ld, 0s),
+    filter 1.5s ease-in var(--ld, 0s),
+    transform 1.7s cubic-bezier(.35, .1, .85, .55) var(--ld, 0s);
+}
+
+/* Historia: los textos aparecen de uno en uno en el mismo sitio */
+.story { display: grid; }
+.story > * { grid-area: 1 / 1; align-self: center; }
+.warning {
+  font-style: italic; font-size: clamp(1.05rem, 3.6vw, 1.25rem); color: #ff8da6;
+  text-shadow: 0 0 18px rgba(255, 40, 90, .55), 0 2px 10px #000;
 }
 
 /* Tipografía */

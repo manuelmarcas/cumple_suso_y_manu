@@ -26,12 +26,13 @@ export const CONFIG = {
     { id: "vodka",   label: "Vodka",     icon: "🧊" },
   ],
 
-  // Música de ambiente (reproductor de YouTube oculto). Deja youtubeId vacío para desactivarla.
-  musica: { youtubeId: "a5IVrbjWx_w", volumen: 40 },
+  // Música de ambiente (archivo en assets/). Deja archivo vacío para desactivarla. volumen: 0 a 1
+  musica: { archivo: "assets/musica.mp3", volumen: 0.4 },
 
   // Enlace de invitación al grupo de WhatsApp (se muestra al final). Vacío = no se muestra.
   whatsapp: "https://chat.whatsapp.com/KS1LXPhpvAyG5FdK2N8CBg?s=cl&p=a&iam=2",
 
-  // Si es true, quien dijo "no" ve un enlace muy discreto para cambiar de opinión.
-  permitirCambiarRespuesta: true,
+  // Si es true, quien dijo "no" ve un enlace muy discreto para cambiar de opinión
+  // (contradice el aviso de "no habrá marcha atrás").
+  permitirCambiarRespuesta: false, // false = "no hay marcha atrás", como avisa la web
 };

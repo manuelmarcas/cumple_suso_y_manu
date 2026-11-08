@@ -43,16 +43,20 @@
 
     <main id="scenes">
 
-      <!-- Bienvenida + pregunta de asistencia -->
-      <section id="scene-welcome" class="scene" hidden>
-        <p class="eyebrow reveal">· · ·</p>
-        <h2 class="title reveal">Las sombras te estaban esperando</h2>
-        <p class="lead reveal">Dos almas cumplen años y la noche ha sido convocada en su nombre.</p>
-        <p class="lead reveal"><span class="name" data-name></span>, la oscuridad ya te reconoce.</p>
-        <p class="question reveal">¿Te atreves a cruzar el umbral y acompañarnos?</p>
-        <div class="actions reveal">
-          <button class="btn btn-main" data-action="yes" type="button">Sí, estaré</button>
-          <button class="btn btn-ghost" data-action="no" type="button">No podré</button>
+      <!-- Bienvenida: los textos salen de uno en uno, en el mismo sitio, hasta la pregunta -->
+      <section id="scene-welcome" class="scene" data-seq hidden>
+        <div class="story">
+          <h2 class="title seq" hidden>Las sombras te estaban esperando</h2>
+          <p class="lead seq" hidden>Dos almas cumplen años y la noche ha sido convocada en su nombre.</p>
+          <p class="lead seq" hidden><span class="name" data-name></span>, la oscuridad ya te reconoce.</p>
+        </div>
+        <div class="ask" hidden>
+          <p class="question reveal">¿Te atreves a cruzar el umbral y acompañarnos?</p>
+          <p class="warning reveal">Elige con cuidado: una vez decidido, no habrá marcha atrás.</p>
+          <div class="actions reveal">
+            <button class="btn btn-main" data-action="yes" type="button">Sí, estaré</button>
+            <button class="btn btn-ghost" data-action="no" type="button">No podré</button>
+          </div>
         </div>
       </section>
 
@@ -103,7 +107,7 @@
         </div>
         <a id="btn-whatsapp" class="btn btn-wa reveal" target="_blank" rel="noopener" hidden>
           <span class="wa-rune" aria-hidden="true">☾</span>
-          <span class="wa-main">Entra en el círculo</span>
+          <span class="wa-main">Entra en el abismo</span>
           <span class="wa-sub">WhatsApp · solo para los elegidos</span>
         </a>
         <button id="btn-edit-drinks" class="faint-link reveal" data-action="to-drinks" type="button">Cambiar mis bebidas</button>

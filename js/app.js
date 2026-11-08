@@ -6,13 +6,15 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const FADE_OUT_MS = 2200;      // duración del desvanecimiento en niebla
-const REVEAL_STEP_S = 1.7;     // segundos entre cada texto que aparece
+const FADE_OUT_MS = 2900;      // duración de la ráfaga de viento que se lleva los textos
+const REVEAL_STEP_S = 2.7;     // segundos entre cada texto que aparece (antes 1.7: +1 s)
+const STEP_BY_SCENE = { plan: 2.1, drinks: 2.2, final: 2.4 };
 const REVEAL_START_S = 0.6;
+const SPLIT_SEL = ".eyebrow, .title, .lead, .question, .warning, .plan li > b, .plan li > span, .seq";
 
 const stage = $("#stage");
 const loginEl = $("#login");
-const state = { user: null, response: null, selected: new Set(), busy: false, current: null, unsubAdmin: null };
+const state = { storyToken: 0, tap: null, user: null, response: null, selected: new Set(), busy: false, current: null, unsubAdmin: null };
 
 /* ---------- Utilidades ---------- */
 function toast(msg, ms = 4500) {
@@ -37,7 +39,85 @@ function fillTexts() {
   if (CONFIG.whatsapp) wa.href = CONFIG.whatsapp;
   $("#btn-maps").href = `https://www.google.com/maps/dir/?api=1&destination=${q}`;
   $("#btn-admin").hidden = !isAdmin(u);
-  $("#btn-music").hidden = !CONFIG.musica?.youtubeId || $("#btn-music").dataset.failed === "1";
+  $("#btn-music").hidden = !CONFIG.musica?.archivo || $("#btn-music").dataset.failed === "1";
+}
+
+/* ---------- Texto letra a letra (humo) ---------- */
+function unsplit(el) {
+  el.querySelectorAll(".w").forEach((w) => w.replaceWith(document.createTextNode(w.textContent)));
+  el.normalize();
+}
+function splitEl(el) {
+  unsplit(el);
+  const label = el.textContent.trim();
+  const total = Math.max(1, label.replace(/\s/g, "").length);
+  let ci = 0;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const walk = (node) => {
+    [...node.childNodes].forEach((n) => {
+      if (n.nodeType === 3) {
+        const frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach((tok) => {
+          if (!tok) return;
+          if (/^\s+$/.test(tok)) { frag.append(document.createTextNode(" ")); return; }
+          const w = document.createElement("span");
+          w.className = "w"; w.setAttribute("aria-hidden", "true");
+          for (const chr of tok) {
+            const c = document.createElement("span");
+            c.className = "ch"; c.textContent = chr;
+            const f = ci / total;                       // las letras de la izquierda se van antes
+            c.style.setProperty("--ci", ci);
+            c.style.setProperty("--ld", `${(f * 0.7 + rnd(0, 0.35)).toFixed(2)}s`);
+            c.style.setProperty("--dx", `${Math.round(rnd(90, 280) + f * 80)}px`);
+            c.style.setProperty("--dy", `${Math.round(rnd(-70, 25))}px`);
+            c.style.setProperty("--r", `${Math.round(rnd(-35, 35))}deg`);
+            w.append(c); ci++;
+          }
+          frag.append(w);
+        });
+        n.replaceWith(frag);
+      } else if (n.nodeType === 1 && !n.classList.contains("w")) walk(n);
+    });
+  };
+  walk(el);
+  el.setAttribute("aria-label", label);
+  el.classList.add("split");
+}
+
+// Espera que se puede saltar tocando la pantalla
+function waitOrTap(ms) {
+  return new Promise((res) => {
+    const done = () => { clearTimeout(t); state.tap = null; res(); };
+    const t = setTimeout(done, ms);
+    state.tap = done;
+  });
+}
+document.addEventListener("click", () => state.tap?.());
+
+/* Bienvenida: textos de uno en uno, en el mismo sitio, hasta la pregunta */
+async function runStory(scene) {
+  const token = ++state.storyToken;
+  const story = $(".story", scene), ask = $(".ask", scene);
+  story.hidden = false; ask.hidden = true;
+  $$(".seq", story).forEach((e) => { e.hidden = true; e.classList.remove("in", "out"); });
+  await sleep(700);
+  for (const el of $$(".seq", story)) {
+    if (token !== state.storyToken) return;
+    const n = el.textContent.replace(/\s/g, "").length;
+    el.hidden = false; void el.offsetWidth;
+    el.classList.add("in");
+    await sleep(n * 35 + 1700);                    // se escribe
+    await waitOrTap(1500 + n * 22 + 1000);         // lectura (+1 s extra; un toque la salta)
+    if (token !== state.storyToken) return;
+    el.classList.remove("in"); el.classList.add("out");
+    await sleep(FADE_OUT_MS + 400);                // se lo lleva el viento
+    el.hidden = true; el.classList.remove("out");
+  }
+  if (token !== state.storyToken) return;
+  story.hidden = true; ask.hidden = false;
+  $$(".reveal", ask).forEach((el, i) => el.style.setProperty("--d", `${0.3 + i * 2.2}s`));
+  void scene.offsetWidth;
+  scene.classList.add("shown");
 }
 
 /* ---------- Escenas ---------- */
@@ -58,11 +138,15 @@ async function goTo(id, { wait = 0 } = {}) {
   if (id === "final") $("#btn-edit-drinks").textContent = (state.response?.bebidas?.length ? "Cambiar mis bebidas" : "Elegir mi bebida");
   next.hidden = false;
   next.scrollTop = 0;
-  $$(".reveal", next).forEach((el, i) => el.style.setProperty("--d", `${REVEAL_START_S + i * REVEAL_STEP_S}s`));
+  $$(SPLIT_SEL, next).forEach(splitEl);
+  const step = STEP_BY_SCENE[id] ?? REVEAL_STEP_S;
+  const isStory = "seq" in next.dataset;
+  if (!isStory) $$(".reveal", next).forEach((el, i) => el.style.setProperty("--d", `${REVEAL_START_S + i * step}s`));
   state.current = id;
   stage.dataset.scene = id;
   void next.offsetWidth;            // fuerza el estado inicial antes de animar
-  next.classList.add("shown");
+  if (isStory) runStory(next);
+  else next.classList.add("shown");
 
   if (id === "farewell" && CONFIG.permitirCambiarRespuesta) {
     // aparece muy tarde y discreto
@@ -191,6 +275,7 @@ async function enterExperience(user) {
 function leaveExperience() {
   closeAdmin();
   stopMusic();
+  state.storyToken++; state.tap = null;
   $$(".scene").forEach((s) => { s.hidden = true; s.classList.remove("shown", "leaving"); });
   $("#btn-change-mind").hidden = true;
   stage.classList.remove("on");
