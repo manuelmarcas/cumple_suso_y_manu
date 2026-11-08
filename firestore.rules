@@ -33,10 +33,10 @@ service cloud.firestore {
         && (!('foto' in d) || d.foto == null || (d.foto is string && d.foto.size() <= 500));
     }
 
-    // Cada persona escribe/lee SOLO su respuesta (el id del documento es su uid).
-    // El administrador puede leer todas.
+    // Cualquier invitado con sesión puede VER las respuestas ("Ver votaciones"),
+    // pero cada persona solo escribe la suya (el id del documento es su uid).
     match /respuestas/{uid} {
-      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow read: if request.auth != null;   // cualquier invitado con sesión puede ver las votaciones
       allow create, update: if request.auth != null && request.auth.uid == uid && validDoc();
       allow delete: if isAdmin();
     }

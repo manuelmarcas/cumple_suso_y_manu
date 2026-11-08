@@ -1,6 +1,6 @@
-import { CONFIG } from "./config.js?v=20261108n";
-import { backend, isDemo } from "./backend.js?v=20261108n";
-import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261108n";
+import { CONFIG } from "./config.js?v=20261108o";
+import { backend, isDemo } from "./backend.js?v=20261108o";
+import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261108o";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -25,6 +25,13 @@ function toast(msg, ms = 4500) {
   toast._t = setTimeout(() => (t.hidden = true), ms);
 }
 const isAdmin = (u) => !!u && CONFIG.admins.map((e) => e.toLowerCase()).includes((u.email || "").toLowerCase());
+// "Ver votaciones": los administradores, siempre; el resto de invitados, solo en la pantalla final
+const canSeeVotes = () => isAdmin(state.user) || state.current === "final";
+function updateTopbar() {
+  $("#btn-admin").hidden = !canSeeVotes();
+  $("#btn-reset").hidden = !isAdmin(state.user);
+  if ($("#btn-admin").hidden) closeAdmin();
+}
 const firstName = (u) => (u.nombre || u.email || "").trim().split(/\s+/)[0] || "viajero";
 
 function fillTexts() {
@@ -39,8 +46,7 @@ function fillTexts() {
   wa.hidden = !CONFIG.whatsapp;
   if (CONFIG.whatsapp) wa.href = CONFIG.whatsapp;
   $("#btn-maps").href = `https://www.google.com/maps/dir/?api=1&destination=${q}`;
-  $("#btn-admin").hidden = !isAdmin(u);
-  $("#btn-reset").hidden = !isAdmin(u);
+  updateTopbar();
   $("#btn-music").hidden = true;       // aparece cuando se abre la puerta
 }
 
@@ -147,6 +153,7 @@ async function goTo(id, { wait = 0 } = {}) {
   if (!isStory) $$(".reveal", next).forEach((el, i) => el.style.setProperty("--d", `${REVEAL_START_S + i * step}s`));
   state.current = id;
   stage.dataset.scene = id;
+  updateTopbar();
   void next.offsetWidth;            // fuerza el estado inicial antes de animar
   if (isStory) runStory(next);
   else next.classList.add("shown");
@@ -421,7 +428,7 @@ $("#admin-close").addEventListener("click", closeAdmin);
 adminEl.addEventListener("click", (e) => { if (e.target === adminEl) closeAdmin(); });
 
 $("#btn-admin").addEventListener("click", () => {
-  if (!isAdmin(state.user)) return;
+  if (!canSeeVotes()) return;
   adminEl.hidden = false;
   $("#admin-error").hidden = true;
   $("#admin-body").replaceChildren();
@@ -429,9 +436,9 @@ $("#btn-admin").addEventListener("click", () => {
   state.unsubAdmin = backend.subscribeAll(renderAdmin, (e) => {
     console.error(e);
     const el = $("#admin-error");
-    el.textContent = "No se pueden leer las votaciones. Comprueba que las reglas de Firestore están publicadas y que tu email es el de administrador.";
+    el.textContent = "No se pueden leer las votaciones ahora mismo. Inténtalo de nuevo en un rato.";
     el.hidden = false;
-  });
+  }, { emails: isAdmin(state.user) });
 });
 
 function el(tag, cls, text) {
@@ -463,15 +470,16 @@ function renderAdmin(rows) {
     bars.append(row);
   }
 
+  const verEmail = isAdmin(state.user);           // los invitados nunca ven emails
   const label = (id) => CONFIG.bebidas.find((d) => d.id === id);
   const byName = (x, y) => (x.nombre || x.email || "").localeCompare(y.nombre || y.email || "", "es");
 
   function personRow(r) {
     const p = el("div", "person");
     if (r.foto) { const img = el("img"); img.src = r.foto; img.alt = ""; img.referrerPolicy = "no-referrer"; p.append(img); }
-    else p.append(el("div", "av", (r.nombre || r.email || "?").charAt(0).toUpperCase()));
+    else p.append(el("div", "av", (r.nombre || (verEmail ? r.email : "") || "?").charAt(0).toUpperCase()));
     const who = el("div", "who");
-    who.append(el("span", "who-name", r.nombre || r.email || "Sin nombre"));
+    who.append(el("span", "who-name", r.nombre || (verEmail ? r.email : "") || "Invitado"));
     if (r.asiste) {
       const chips = el("div", "chips");
       if (r.bebidas?.length) {
@@ -481,7 +489,7 @@ function renderAdmin(rows) {
         });
       } else chips.append(el("span", "dchip dchip-none", "Sin elegir bebida"));
       who.append(chips);
-    } else if (r.email) who.append(el("small", null, r.email));
+    } else if (verEmail && r.email) who.append(el("small", null, r.email));
     p.append(who);
     return p;
   }

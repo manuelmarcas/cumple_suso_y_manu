@@ -1,5 +1,5 @@
 // Música de ambiente (archivo mp3 propio) + botón ♪ para silenciar.
-import { CONFIG } from "./config.js?v=20261108n";
+import { CONFIG } from "./config.js?v=20261108o";
 
 const cfg = CONFIG.musica || {};
 // armed: ya se pulsó el botón de la puerta (hasta entonces NO suena nada)
