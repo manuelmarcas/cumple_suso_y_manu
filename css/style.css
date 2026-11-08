@@ -48,11 +48,15 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 .bg {
   position: absolute; inset: 0;
-  background: url("../assets/fondo.jpg") center / cover no-repeat;
+  background: url("../assets/fondo-9x16.jpg") center / cover no-repeat;
   opacity: 0; transform: scale(1.08);
   transition: opacity 3.2s ease, transform 24s ease-out;
 }
 .stage.on .bg { opacity: .85; transform: scale(1); }
+/* Pantallas horizontales: versión 16:9 de la imagen */
+@media (min-aspect-ratio: 1/1) {
+  .bg { background-image: url("../assets/fondo-16x9.jpg"); }
+}
 
 .scrim {
   position: absolute; inset: 0; pointer-events: none;
@@ -95,6 +99,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
   opacity: .75; transition: opacity .2s, border-color .2s;
 }
 .chip-btn:hover { opacity: 1; border-color: rgba(255,255,255,.4); }
+.chip-music { min-width: 42px; font-size: 1.1rem; padding: 4px 12px; }
+.chip-music.off { opacity: .45; text-decoration: line-through; text-decoration-thickness: 2px; }
+.chip-music.pulse { opacity: .95; animation: pulse 1.8s ease-in-out infinite; text-decoration: none; border-color: rgba(255, 47, 98, .8); }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 47, 98, .5); } 50% { box-shadow: 0 0 0 9px rgba(255, 47, 98, 0); } }
 .chip-admin { border-color: rgba(255, 70, 110, .6); color: #ffd3dc; opacity: 1; }
 
 /* ============================================================
@@ -162,6 +170,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 }
 .btn-main:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 34px rgba(255, 47, 98, .75); }
 .btn-main:disabled { opacity: .35; cursor: not-allowed; box-shadow: none; }
+.btn-wa {
+  background: rgba(10, 6, 20, .72); border-color: #25d366; color: #b8f5cf;
+  box-shadow: 0 0 16px rgba(37, 211, 102, .25);
+}
+.btn-wa:hover { background: rgba(37, 211, 102, .18); box-shadow: 0 0 26px rgba(37, 211, 102, .5); }
 .btn-ghost { background: rgba(10,6,20,.5); border-color: rgba(255,255,255,.3); color: #ddd; }
 .btn-ghost:hover { border-color: #fff; color: #fff; }
 

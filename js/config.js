@@ -26,6 +26,12 @@ export const CONFIG = {
     { id: "vodka",   label: "Vodka",     icon: "🧊" },
   ],
 
+  // Música de ambiente (reproductor de YouTube oculto). Deja youtubeId vacío para desactivarla.
+  musica: { youtubeId: "a5IVrbjWx_w", volumen: 40 },
+
+  // Enlace de invitación al grupo de WhatsApp (se muestra al final). Vacío = no se muestra.
+  whatsapp: "https://chat.whatsapp.com/KS1LXPhpvAyG5FdK2N8CBg?s=cl&p=a&iam=2",
+
   // Si es true, quien dijo "no" ve un enlace muy discreto para cambiar de opinión.
   permitirCambiarRespuesta: true,
 };

@@ -1,5 +1,6 @@
 import { CONFIG } from "./config.js";
 import { backend, isDemo } from "./backend.js";
+import { setupMusic, stopMusic } from "./music.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -31,8 +32,12 @@ function fillTexts() {
   $$("[data-lugar]").forEach((el) => (el.textContent = CONFIG.lugarNombre));
   $$("[data-direccion]").forEach((el) => (el.textContent = CONFIG.direccion));
   const q = encodeURIComponent(CONFIG.direccion);
+  const wa = $("#btn-whatsapp");
+  wa.hidden = !CONFIG.whatsapp;
+  if (CONFIG.whatsapp) wa.href = CONFIG.whatsapp;
   $("#btn-maps").href = `https://www.google.com/maps/dir/?api=1&destination=${q}`;
   $("#btn-admin").hidden = !isAdmin(u);
+  $("#btn-music").hidden = !CONFIG.musica?.youtubeId || $("#btn-music").dataset.failed === "1";
 }
 
 /* ---------- Escenas ---------- */
@@ -185,6 +190,7 @@ async function enterExperience(user) {
 
 function leaveExperience() {
   closeAdmin();
+  stopMusic();
   $$(".scene").forEach((s) => { s.hidden = true; s.classList.remove("shown", "leaving"); });
   $("#btn-change-mind").hidden = true;
   stage.classList.remove("on");
@@ -270,5 +276,7 @@ function renderAdmin(rows) {
 
   body.replaceChildren(stats, bars, people);
 }
+
+setupMusic();
 
 if (isDemo) console.info("%cMODO DEMO: rellena js/firebase-config.js para usar Firebase.", "color:#ff2f62");
