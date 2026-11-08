@@ -49,7 +49,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 .bg {
   position: absolute; inset: 0;
-  background: url("../assets/fondo-9x16.jpg?v=20261108d") center / cover no-repeat;
+  background: url("../assets/fondo-9x16.jpg?v=20261108e") center / cover no-repeat;
   opacity: 0; transform: scale(1.28); filter: brightness(2.4) blur(10px);
   transition:
     opacity 2.2s ease .5s,
@@ -59,7 +59,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .stage.open .bg { opacity: .85; transform: scale(1); filter: none; }
 /* Pantallas horizontales: versión 16:9 de la imagen */
 @media (min-aspect-ratio: 1/1) {
-  .bg { background-image: url("../assets/fondo-16x9.jpg?v=20261108d"); }
+  .bg { background-image: url("../assets/fondo-16x9.jpg?v=20261108e"); }
 }
 
 .scrim {
