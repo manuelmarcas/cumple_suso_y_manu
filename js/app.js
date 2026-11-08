@@ -1,6 +1,6 @@
-import { CONFIG } from "./config.js?v=20261108j";
-import { backend, isDemo } from "./backend.js?v=20261108j";
-import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261108j";
+import { CONFIG } from "./config.js?v=20261108l";
+import { backend, isDemo } from "./backend.js?v=20261108l";
+import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261108l";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
