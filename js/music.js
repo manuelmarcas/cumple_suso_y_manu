@@ -1,5 +1,5 @@
 // Música de ambiente (archivo mp3 propio) + botón ♪ para silenciar.
-import { CONFIG } from "./config.js?v=20261108f";
+import { CONFIG } from "./config.js?v=20261108g";
 
 const cfg = CONFIG.musica || {};
 // armed: ya se pulsó el botón de la puerta (hasta entonces NO suena nada)
@@ -22,21 +22,22 @@ function setBtn() {
   b.title = state.playing ? "Silenciar música" : "Activar música";
 }
 
-// Sube de menos a más (curva suave): como acercarse a la discoteca desde la calle
-function fadeTo(target, ms = 9000) {
+// Sube de menos a más: se oye ya desde el clic y crece rápido al principio y más suave al final
+function fadeTo(target, ms = 8000) {
   clearInterval(state.fade);
   const a = state.audio; if (!a) return;
   const from = a.volume, steps = 60; let i = 0;
   state.fade = setInterval(() => {
     i++; const k = i / steps;
-    a.volume = Math.min(1, Math.max(0, from + (target - from) * k * k));
+    const e = 1 - (1 - k) * (1 - k);                  // ease-out
+    a.volume = Math.min(1, Math.max(0, from + (target - from) * e));
     if (i >= steps) clearInterval(state.fade);
   }, ms / steps);
 }
 
 function play() {
   const a = state.audio; if (!a) return;
-  a.volume = 0;
+  a.volume = cfg.volumenInicial ?? 0.06;               // ya audible desde el primer instante
   const p = a.play();
   // Si el navegador lo bloquea, se reintenta en el siguiente toque
   p?.then(() => fadeTo(cfg.volumen ?? 0.4)).catch(() => { state.playing = false; setBtn(); });
