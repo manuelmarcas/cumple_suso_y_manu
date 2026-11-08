@@ -63,3 +63,9 @@ Colección `respuestas`, un documento por persona (id = uid de Google):
 
 - Desde navegadores integrados (WhatsApp, Instagram) Google bloquea el login: abrir en Chrome/Safari.
 - Cualquier cuenta de Google puede responder. Si quieres limitarlo a una lista de invitados, hay que añadir una lista de emails a las reglas.
+
+## Probar el flujo desde cero (solo administrador)
+
+La cuenta de administrador ve un botón **↺ Reiniciar** arriba. Borra su propia respuesta
+y vuelve a la puerta cerrada, para repetir todo el recorrido las veces que haga falta.
+Para el resto de invitados no existe (la elección es definitiva).

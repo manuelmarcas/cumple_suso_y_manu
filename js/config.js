@@ -27,7 +27,7 @@ export const CONFIG = {
   ],
 
   // Música de ambiente (archivo en assets/). Deja archivo vacío para desactivarla. volumen: 0 a 1
-  musica: { archivo: "assets/musica.mp3?v=20261108h", volumen: 0.4, volumenInicial: 0.06 },
+  musica: { archivo: "assets/musica.mp3?v=20261108j", volumen: 0.4, volumenInicial: 0.06 },
 
   // Enlace de invitación al grupo de WhatsApp (se muestra al final). Vacío = no se muestra.
   whatsapp: "https://chat.whatsapp.com/KS1LXPhpvAyG5FdK2N8CBg?s=cl&p=a&iam=2",

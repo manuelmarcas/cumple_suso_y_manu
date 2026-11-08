@@ -1,6 +1,6 @@
-import { CONFIG } from "./config.js?v=20261108h";
-import { backend, isDemo } from "./backend.js?v=20261108h";
-import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261108h";
+import { CONFIG } from "./config.js?v=20261108j";
+import { backend, isDemo } from "./backend.js?v=20261108j";
+import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261108j";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -40,6 +40,7 @@ function fillTexts() {
   if (CONFIG.whatsapp) wa.href = CONFIG.whatsapp;
   $("#btn-maps").href = `https://www.google.com/maps/dir/?api=1&destination=${q}`;
   $("#btn-admin").hidden = !isAdmin(u);
+  $("#btn-reset").hidden = !isAdmin(u);
   $("#btn-music").hidden = true;       // aparece cuando se abre la puerta
 }
 
@@ -326,6 +327,29 @@ let lastUid = null;
 backend.onAuth((user) => {
   if (user && user.uid !== lastUid) { lastUid = user.uid; enterExperience(user); }
   else if (!user && lastUid) { lastUid = null; leaveExperience(); }
+});
+
+/* ---------- Reiniciar (solo admin, para probar el flujo desde cero) ---------- */
+$("#btn-reset").addEventListener("click", async () => {
+  if (!isAdmin(state.user) || state.busy) return;
+  if (!confirm("¿Borrar tu respuesta y empezar de cero? (solo para pruebas)")) return;
+  state.busy = true;
+  try { await backend.deleteResponse(state.user.uid); }
+  catch (e) {
+    console.error(e); state.busy = false;
+    return toast("No se pudo reiniciar. Revisa que las reglas de Firestore estén publicadas.");
+  }
+  closeAdmin();
+  state.storyToken++; state.tap = null;                       // corta la historia si estaba en marcha
+  stopMusic();
+  $$(".scene").forEach((s) => { s.hidden = true; s.classList.remove("shown", "leaving"); });
+  $("#btn-change-mind").hidden = true;
+  delete stage.dataset.scene;
+  state.current = null; state.response = null; state.selected = new Set(); state.opening = false;
+  resetDoor();                                                // puerta cerrada, sin imagen ni música
+  state.busy = false;
+  await sleep(500);
+  goTo("intro");
 });
 
 /* ---------- Panel admin ---------- */
