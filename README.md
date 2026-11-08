@@ -7,7 +7,7 @@ Web de invitación y votaciones. Estática (GitHub Pages) + Firebase (Google Log
 1. **Login** neutro con Google.
 2. **Bienvenida** sobre la imagen de fondo: aparecen los textos poco a poco y la pregunta de asistencia.
    - **No** → se desvanece en niebla y se despide. Nada más.
-   - **Sí** → niebla, 3 s después aparece el plan (tardeo, cena, previa, MYA) → votación de bebidas (multiselección) → gracias + ubicación y botón *Cómo llegar* (Google Maps).
+   - **Sí** → niebla, 3 s después aparece el plan (tardeo, cena, previa, Akuarela) → votación de bebidas (multiselección) → gracias + ubicación y botón *Cómo llegar* (Google Maps).
 3. Botón inferior **Saltar** (solo tras decir que sí) → va directo a la ubicación con la hora.
 4. La cuenta de administrador ve el botón **Ver votaciones** (asistentes y recuento por bebida en tiempo real).
 
