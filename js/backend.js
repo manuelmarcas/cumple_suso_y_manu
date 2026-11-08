@@ -1,5 +1,5 @@
 // Capa de datos: Firebase (real) o modo demo (localStorage) si aún no hay configuración.
-import { firebaseConfig } from "./firebase-config.js?v=20261108e";
+import { firebaseConfig } from "./firebase-config.js?v=20261108f";
 
 const SDK = "https://www.gstatic.com/firebasejs/10.12.2";
 const COLECCION = "respuestas";

@@ -1,6 +1,6 @@
-import { CONFIG } from "./config.js?v=20261108e";
-import { backend, isDemo } from "./backend.js?v=20261108e";
-import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261108e";
+import { CONFIG } from "./config.js?v=20261108f";
+import { backend, isDemo } from "./backend.js?v=20261108f";
+import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261108f";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -10,7 +10,7 @@ const FADE_OUT_MS = 2900;      // duración de la ráfaga de viento que se lleva
 const REVEAL_STEP_S = 2.7;     // segundos entre cada texto que aparece (antes 1.7: +1 s)
 const STEP_BY_SCENE = { intro: 1.2, plan: 2.1, drinks: 2.2, final: 2.4 };
 const REVEAL_START_S = 0.6;
-const OPEN_DELAY_MS = 500;     // pausa entre el clic y la apertura de la puerta (la música ya está sonando)
+const OPEN_DELAY_MS = 1500;    // pausa entre el clic y la apertura de la puerta (la música ya está sonando)
 const SPLIT_SEL = ".eyebrow, .title, .lead, .question, .warning, .plan li > b, .plan li > span, .seq";
 
 const stage = $("#stage");
@@ -227,7 +227,7 @@ const actions = {
     state.opening = true;
     startMusic();                      // dentro del gesto del usuario: empieza a sonar, de menos a más
     return run(async () => {
-      await sleep(OPEN_DELAY_MS);      // medio segundo: la canción arranca antes de que se abra la puerta
+      await sleep(OPEN_DELAY_MS);      // pausa: la canción arranca antes de que se abra la puerta
       openDoor();                      // la puerta se abre y entra la imagen
       // los textos de la entrada se van con el viento y, ya con la puerta abierta, aparecen los demás
       await goTo(routeScene(), { wait: 1000 });
