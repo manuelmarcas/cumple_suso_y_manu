@@ -1,6 +1,6 @@
-import { CONFIG } from "./config.js?v=20261108c";
-import { backend, isDemo } from "./backend.js?v=20261108c";
-import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261108c";
+import { CONFIG } from "./config.js?v=20261108d";
+import { backend, isDemo } from "./backend.js?v=20261108d";
+import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261108d";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -14,7 +14,7 @@ const SPLIT_SEL = ".eyebrow, .title, .lead, .question, .warning, .plan li > b, .
 
 const stage = $("#stage");
 const loginEl = $("#login");
-const state = { storyToken: 0, tap: null, user: null, response: null, selected: new Set(), busy: false, current: null, unsubAdmin: null };
+const state = { opening: false, storyToken: 0, tap: null, user: null, response: null, selected: new Set(), busy: false, current: null, unsubAdmin: null };
 
 /* ---------- Utilidades ---------- */
 function toast(msg, ms = 4500) {
@@ -39,7 +39,7 @@ function fillTexts() {
   if (CONFIG.whatsapp) wa.href = CONFIG.whatsapp;
   $("#btn-maps").href = `https://www.google.com/maps/dir/?api=1&destination=${q}`;
   $("#btn-admin").hidden = !isAdmin(u);
-  $("#btn-music").hidden = !CONFIG.musica?.archivo || $("#btn-music").dataset.failed === "1";
+  $("#btn-music").hidden = true;       // aparece cuando se abre la puerta
 }
 
 /* ---------- Texto letra a letra (humo) ---------- */
@@ -202,11 +202,32 @@ async function run(fn) {
   finally { state.busy = false; }
 }
 
+/* ---------- Puerta ---------- */
+async function openDoor() {
+  const door = $("#door");
+  door.classList.add("open");
+  stage.classList.add("open");          // se revela la imagen y la niebla
+  const mb = $("#btn-music");
+  mb.hidden = !CONFIG.musica?.archivo || mb.dataset.failed === "1";
+  await sleep(3200);
+  door.hidden = true;
+}
+function resetDoor() {
+  const door = $("#door");
+  door.hidden = false; door.classList.remove("open");
+  stage.classList.remove("open");
+  $("#btn-music").hidden = true;
+}
+
 /* ---------- Acciones ---------- */
 const actions = {
   enter: () => {
-    startMusic();                      // dentro del gesto del usuario: el navegador lo permite
-    return run(() => goTo(routeScene()));
+    if (state.opening) return;
+    state.opening = true;
+    startMusic();                      // dentro del gesto del usuario: empieza a sonar, de menos a más
+    openDoor();                        // la puerta se abre y entra la imagen
+    // los textos de la entrada se van con el viento y, ya con la puerta abierta, aparecen los demás
+    return run(() => goTo(routeScene(), { wait: 1000 }));
   },
   yes: () => run(async () => {
     await save({ asiste: true });
@@ -267,8 +288,8 @@ async function enterExperience(user) {
   loginEl.hidden = true;
   stage.hidden = false;
   void stage.offsetWidth;
-  stage.classList.add("on");           // 1º se carga la imagen (y la niebla)
-  await sleep(2200);                   // 2º empiezan a aparecer los textos
+  stage.classList.add("on");           // puerta cerrada: la imagen y la música esperan al botón
+  await sleep(900);
 
   return goTo("intro");                // pantalla de entrada: aquí se da el primer toque (música)
 }
@@ -290,7 +311,8 @@ function leaveExperience() {
   stage.classList.remove("on");
   stage.hidden = true;
   delete stage.dataset.scene;
-  state.current = null; state.user = null; state.response = null; state.busy = false;
+  state.current = null; state.user = null; state.response = null; state.busy = false; state.opening = false;
+  resetDoor();
   loginEl.hidden = false;
   void loginEl.offsetWidth;
   loginEl.classList.remove("out");

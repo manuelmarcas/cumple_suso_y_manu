@@ -1,9 +1,10 @@
 // Música de ambiente (archivo mp3 propio) + botón ♪ para silenciar.
-import { CONFIG } from "./config.js?v=20261108c";
+import { CONFIG } from "./config.js?v=20261108d";
 
 const cfg = CONFIG.musica || {};
+// armed: ya se pulsó el botón de la puerta (hasta entonces NO suena nada)
 // playing: el audio suena de verdad · muted: la persona la ha silenciado a propósito
-const state = { audio: null, playing: false, muted: false, fade: null };
+const state = { audio: null, armed: false, playing: false, muted: false, fade: null };
 const btn = () => document.getElementById("btn-music");
 
 function hideBtn() {
@@ -16,17 +17,19 @@ function setBtn() {
   if (!b) return;
   b.classList.toggle("off", !state.playing);
   // Si no suena y no está silenciada a propósito, el botón late para invitar a tocarlo
-  b.classList.toggle("pulse", !state.playing && !state.muted);
+  b.classList.toggle("pulse", state.armed && !state.playing && !state.muted);
   b.setAttribute("aria-pressed", String(state.playing));
   b.title = state.playing ? "Silenciar música" : "Activar música";
 }
 
-function fadeTo(target, ms = 4000) {
+// Sube de menos a más (curva suave): como acercarse a la discoteca desde la calle
+function fadeTo(target, ms = 9000) {
   clearInterval(state.fade);
   const a = state.audio; if (!a) return;
-  const from = a.volume, steps = 30; let i = 0;
+  const from = a.volume, steps = 60; let i = 0;
   state.fade = setInterval(() => {
-    i++; a.volume = Math.min(1, Math.max(0, from + (target - from) * (i / steps)));
+    i++; const k = i / steps;
+    a.volume = Math.min(1, Math.max(0, from + (target - from) * k * k));
     if (i >= steps) clearInterval(state.fade);
   }, ms / steps);
 }
@@ -39,8 +42,9 @@ function play() {
   p?.then(() => fadeTo(cfg.volumen ?? 0.4)).catch(() => { state.playing = false; setBtn(); });
 }
 
-/** Se llama desde un gesto del usuario (toque/clic). Reintenta en cada gesto hasta que suena. */
+/** Solo se llama desde el botón de la puerta (gesto del usuario): aquí empieza a sonar. */
 export function startMusic() {
+  state.armed = true;
   if (!state.audio || state.muted || state.playing) return;
   play();
 }
@@ -48,7 +52,8 @@ export function startMusic() {
 export function stopMusic() {
   clearInterval(state.fade);
   state.audio?.pause();
-  state.playing = false;
+  if (state.audio) state.audio.currentTime = 0;
+  state.armed = false; state.playing = false; state.muted = false;
   setBtn();
 }
 
@@ -60,6 +65,7 @@ export function setupMusic() {
   a.addEventListener("playing", () => { state.playing = true; setBtn(); });
   a.addEventListener("pause", () => { state.playing = false; setBtn(); });
   a.addEventListener("error", () => { console.warn("Música: no se pudo cargar el audio"); hideBtn(); });
+  a.id = "musica"; document.body.append(a);   // sin controles: no se ve
   state.audio = a;
 
   btn()?.addEventListener("click", (e) => {
@@ -69,8 +75,9 @@ export function setupMusic() {
     setBtn();
   });
 
-  // Los navegadores móviles solo dejan sonar tras un gesto ("click" y "touchend" cuentan).
-  const gesture = (e) => { if (e.target.closest?.("#btn-music")) return; startMusic(); };
+  // Si el navegador bloqueó el primer intento, se reintenta en el siguiente toque,
+  // pero solo después de pulsar el botón de la puerta (antes no debe sonar nada).
+  const gesture = (e) => { if (!state.armed || e.target.closest?.("#btn-music")) return; startMusic(); };
   document.addEventListener("click", gesture, { passive: true });
   document.addEventListener("touchend", gesture, { passive: true });
   setBtn();
