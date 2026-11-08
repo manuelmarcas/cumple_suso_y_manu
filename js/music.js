@@ -1,5 +1,5 @@
 // Música de ambiente (archivo mp3 propio) + botón ♪ para silenciar.
-import { CONFIG } from "./config.js";
+import { CONFIG } from "./config.js?v=20261108c";
 
 const cfg = CONFIG.musica || {};
 // playing: el audio suena de verdad · muted: la persona la ha silenciado a propósito

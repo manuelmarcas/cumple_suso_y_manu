@@ -1,6 +1,6 @@
-import { CONFIG } from "./config.js";
-import { backend, isDemo } from "./backend.js";
-import { setupMusic, startMusic, stopMusic } from "./music.js";
+import { CONFIG } from "./config.js?v=20261108c";
+import { backend, isDemo } from "./backend.js?v=20261108c";
+import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261108c";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -354,19 +354,37 @@ function renderAdmin(rows) {
     bars.append(row);
   }
 
-  const people = el("div");
-  people.append(el("h4", null, `Personas (${rows.length})`));
-  if (!rows.length) people.append(el("p", "empty", "Aún no ha respondido nadie."));
-  const label = (id) => CONFIG.bebidas.find((d) => d.id === id)?.label || id;
-  [...rows].sort((a, b) => (b.asiste === true) - (a.asiste === true) || (a.nombre || "").localeCompare(b.nombre || "")).forEach((r) => {
+  const label = (id) => CONFIG.bebidas.find((d) => d.id === id);
+  const byName = (x, y) => (x.nombre || x.email || "").localeCompare(y.nombre || y.email || "", "es");
+
+  function personRow(r) {
     const p = el("div", "person");
     if (r.foto) { const img = el("img"); img.src = r.foto; img.alt = ""; img.referrerPolicy = "no-referrer"; p.append(img); }
-    else p.append(el("div", "av", (r.nombre || "?").charAt(0).toUpperCase()));
-    const who = el("div", "who", r.nombre || r.email || "Sin nombre");
-    who.append(el("small", null, r.asiste ? (r.bebidas?.length ? r.bebidas.map(label).join(", ") : "Sin elegir bebida") : r.email || ""));
-    p.append(who, el("span", `badge ${r.asiste ? "si" : "no"}`, r.asiste ? "Sí" : "No"));
-    people.append(p);
-  });
+    else p.append(el("div", "av", (r.nombre || r.email || "?").charAt(0).toUpperCase()));
+    const who = el("div", "who");
+    who.append(el("span", "who-name", r.nombre || r.email || "Sin nombre"));
+    if (r.asiste) {
+      const chips = el("div", "chips");
+      if (r.bebidas?.length) {
+        r.bebidas.map(label).filter(Boolean).forEach((d) => chips.append(el("span", "dchip", `${d.icon} ${d.label}`)));
+      } else chips.append(el("span", "dchip dchip-none", "Sin elegir bebida"));
+      who.append(chips);
+    } else if (r.email) who.append(el("small", null, r.email));
+    p.append(who);
+    return p;
+  }
+
+  function group(title, list, cls) {
+    const g = el("div", "group");
+    g.append(el("h4", cls, `${title} (${list.length})`));
+    if (!list.length) g.append(el("p", "empty", "Nadie por ahora."));
+    [...list].sort(byName).forEach((r) => g.append(personRow(r)));
+    return g;
+  }
+
+  const people = el("div");
+  if (!rows.length) { people.append(el("h4", null, "Personas (0)"), el("p", "empty", "Aún no ha respondido nadie.")); }
+  else people.append(group("Asisten", si, "h-si"), group("No asisten", no, "h-no"));
 
   body.replaceChildren(stats, bars, people);
 }
