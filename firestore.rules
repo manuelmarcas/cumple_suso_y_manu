@@ -38,6 +38,10 @@ service cloud.firestore {
     match /respuestas/{uid} {
       allow read: if request.auth != null;   // cualquier invitado con sesión puede ver las votaciones
       allow create, update: if request.auth != null && request.auth.uid == uid && validDoc();
+      // Un administrador solo puede pasar a alguien a "no asiste" (nada más cambia)
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['asiste', 'actualizado'])
+        && request.resource.data.asiste == false;
       allow delete: if isAdmin();
     }
 

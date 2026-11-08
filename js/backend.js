@@ -1,5 +1,5 @@
 // Capa de datos: Firebase (real) o modo demo (localStorage) si aún no hay configuración.
-import { firebaseConfig } from "./firebase-config.js?v=20261108o";
+import { firebaseConfig } from "./firebase-config.js?v=20261108p";
 
 const SDK = "https://www.gstatic.com/firebasejs/10.12.2";
 const COLECCION = "respuestas";
@@ -36,6 +36,10 @@ async function makeFirebase() {
       return s.exists() ? s.data() : null;
     },
     deleteResponse(uid) { return F.deleteDoc(F.doc(db, COLECCION, uid)); },
+    // Solo administradores: pasa a una persona a "no asiste" (las reglas lo restringen a eso)
+    marcarNoAsiste(uid) {
+      return F.updateDoc(F.doc(db, COLECCION, uid), { asiste: false, actualizado: F.serverTimestamp() });
+    },
     saveResponse(user, { asiste, bebidas, mezclas }) {
       return F.setDoc(F.doc(db, COLECCION, user.uid), {
         nombre: user.nombre, email: user.email, foto: user.foto,
@@ -64,6 +68,10 @@ function makeDemo() {
     async deleteResponse(uid) {
       const all = read(); delete all[uid];
       localStorage.setItem(KEY, JSON.stringify(all)); emit();
+    },
+    async marcarNoAsiste(uid) {
+      const all = read();
+      if (all[uid]) { all[uid].asiste = false; localStorage.setItem(KEY, JSON.stringify(all)); emit(); }
     },
     async saveResponse(user, { asiste, bebidas, mezclas }) {
       const all = read();

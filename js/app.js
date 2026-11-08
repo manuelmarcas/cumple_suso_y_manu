@@ -1,6 +1,6 @@
-import { CONFIG } from "./config.js?v=20261108o";
-import { backend, isDemo } from "./backend.js?v=20261108o";
-import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261108o";
+import { CONFIG } from "./config.js?v=20261108p";
+import { backend, isDemo } from "./backend.js?v=20261108p";
+import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261108p";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -491,6 +491,21 @@ function renderAdmin(rows) {
       who.append(chips);
     } else if (verEmail && r.email) who.append(el("small", null, r.email));
     p.append(who);
+    if (r.asiste === true && isAdmin(state.user)) {        // papelera: solo administradores, solo a quien asiste
+      const nombre = r.nombre || r.email || "esta persona";
+      const b = el("button", "trash", "🗑");
+      b.type = "button";
+      b.title = b.ariaLabel = `Pasar a ${nombre} a "No asiste"`;
+      b.addEventListener("click", async () => {
+        if (!confirm(`¿Seguro que quieres cambiar a ${nombre} a "No asiste"?`)) return;
+        try { await backend.marcarNoAsiste(r.id); }
+        catch (e) {
+          console.error(e);
+          toast("No se pudo cambiar. Revisa que las reglas de Firestore estén publicadas.");
+        }
+      });
+      p.append(b);
+    }
     return p;
   }
 

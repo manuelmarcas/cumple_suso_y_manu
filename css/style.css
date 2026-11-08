@@ -49,7 +49,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 .bg {
   position: absolute; inset: 0;
-  background: url("../assets/fondo-9x16.jpg?v=20261108o") center / cover no-repeat;
+  background: url("../assets/fondo-9x16.jpg?v=20261108p") center / cover no-repeat;
   opacity: 0; transform: scale(1.28); filter: brightness(2.4) blur(10px);
   transition:
     opacity 2.2s ease .5s,
@@ -59,7 +59,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .stage.open .bg { opacity: .85; transform: scale(1); filter: none; }
 /* Pantallas horizontales: versión 16:9 de la imagen */
 @media (min-aspect-ratio: 1/1) {
-  .bg { background-image: url("../assets/fondo-16x9.jpg?v=20261108o"); }
+  .bg { background-image: url("../assets/fondo-16x9.jpg?v=20261108p"); }
 }
 
 .scrim {
@@ -424,6 +424,13 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .admin h4.h-si { color: #8ff0b8; }
 .admin h4.h-no { color: #ff9db3; }
 .group { margin-top: 6px; }
+.trash {
+  flex: none; align-self: center; width: 34px; height: 34px; border-radius: 50%;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16);
+  color: #e8d9ff; font-size: .95rem; line-height: 1; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.trash:hover, .trash:active { background: rgba(220,70,70,.3); border-color: rgba(255,120,120,.6); }
 .who-name { font-weight: 600; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .dchip { font-size: .8rem; padding: 3px 10px; border-radius: 999px; background: rgba(255, 47, 98, .16); border: 1px solid rgba(255, 47, 98, .4); color: #ffd6df; }
