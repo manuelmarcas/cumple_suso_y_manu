@@ -1,6 +1,6 @@
-import { CONFIG } from "./config.js?v=20261108l";
-import { backend, isDemo } from "./backend.js?v=20261108l";
-import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261108l";
+import { CONFIG } from "./config.js?v=20261108m";
+import { backend, isDemo } from "./backend.js?v=20261108m";
+import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261108m";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -15,7 +15,7 @@ const SPLIT_SEL = ".eyebrow, .title, .lead, .question, .warning, .plan li > b, .
 
 const stage = $("#stage");
 const loginEl = $("#login");
-const state = { opening: false, storyToken: 0, tap: null, user: null, response: null, selected: new Set(), busy: false, current: null, unsubAdmin: null };
+const state = { draft: null, mixes: {}, opening: false, storyToken: 0, tap: null, user: null, response: null, selected: new Set(), busy: false, current: null, unsubAdmin: null };
 
 /* ---------- Utilidades ---------- */
 function toast(msg, ms = 4500) {
@@ -137,6 +137,7 @@ async function goTo(id, { wait = 0 } = {}) {
   const next = $(`#scene-${id}`);
   if (id === "final") $("#map").src = `https://www.google.com/maps?q=${encodeURIComponent(CONFIG.direccion)}&output=embed`;
   if (id === "drinks") renderDrinks();
+  if (id === "mixers") renderMixers();
   if (id === "final") $("#btn-edit-drinks").textContent = (state.response?.bebidas?.length ? "Cambiar mis bebidas" : "Elegir mi bebida");
   next.hidden = false;
   next.scrollTop = 0;
@@ -160,7 +161,7 @@ async function goTo(id, { wait = 0 } = {}) {
 
 /* ---------- Bebidas ---------- */
 function renderDrinks() {
-  state.selected = new Set(state.response?.bebidas || []);
+  state.selected = new Set(state.draft?.bebidas ?? state.response?.bebidas ?? []);
   const wrap = $("#drinks");
   wrap.replaceChildren();
   for (const d of CONFIG.bebidas) {
@@ -181,11 +182,53 @@ function renderDrinks() {
   $("#drinks-error").hidden = true;
 }
 
+/* ---------- Mezclas (con qué se acompaña cada destilado) ---------- */
+const spiritsSelected = () => CONFIG.bebidas.filter((d) => d.mezcla && state.selected.has(d.id));
+
+function mixesComplete() {
+  return spiritsSelected().every((d) => state.mixes[d.id]?.size > 0);
+}
+
+function renderMixers() {
+  const saved = state.draft?.mezclas ?? state.response?.mezclas ?? {};
+  state.mixes = {};
+  const wrap = $("#mixers");
+  wrap.replaceChildren();
+  const refresh = () => {
+    $("#btn-mixers-ok").disabled = !mixesComplete();
+    $$(".mix-block", wrap).forEach((blk) => blk.classList.toggle("mix-missing", !state.mixes[blk.dataset.id]?.size));
+  };
+  for (const d of spiritsSelected()) {
+    state.mixes[d.id] = new Set((saved[d.id] || []).filter((id) => CONFIG.mezclas.some((m) => m.id === id)));
+    const blk = document.createElement("div"); blk.className = "mix-block"; blk.dataset.id = d.id;
+    const h = document.createElement("h3"); h.className = "mix-title"; h.textContent = `${d.icon} ${d.label} con…`;
+    const grid = document.createElement("div"); grid.className = "mix-grid";
+    for (const m of CONFIG.mezclas) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "drink"; b.dataset.id = m.id;
+      b.setAttribute("aria-pressed", String(state.mixes[d.id].has(m.id)));
+      const ico = document.createElement("span"); ico.className = "ico"; ico.textContent = m.icon;
+      const lab = document.createElement("span"); lab.textContent = m.label;
+      b.append(ico, lab);
+      b.addEventListener("click", () => {
+        const set = state.mixes[d.id];
+        set.has(m.id) ? set.delete(m.id) : set.add(m.id);
+        b.setAttribute("aria-pressed", String(set.has(m.id)));
+        refresh();
+      });
+      grid.append(b);
+    }
+    blk.append(h, grid); wrap.append(blk);
+  }
+  $("#btn-mixers-ok").disabled = !mixesComplete();
+}
+
 /* ---------- Guardado ---------- */
 async function save(patch) {
   const data = {
     asiste: patch.asiste ?? state.response?.asiste ?? false,
     bebidas: patch.bebidas ?? state.response?.bebidas ?? [],
+    mezclas: patch.mezclas ?? state.response?.mezclas ?? {},
   };
   await backend.saveResponse(state.user, data);
   state.response = { ...(state.response || {}), ...data };
@@ -249,7 +292,23 @@ const actions = {
   "to-drinks": () => run(() => goTo("drinks")),
   "drinks-ok": () => run(async () => {
     if (state.selected.size === 0) return;
-    await save({ asiste: true, bebidas: [...state.selected] });
+    const bebidas = [...state.selected];
+    if (spiritsSelected().length) {
+      // hay destilados: antes de guardar se pregunta con qué los acompaña
+      state.draft = { bebidas, mezclas: state.draft?.mezclas ?? state.response?.mezclas ?? {} };
+      await goTo("mixers", { wait: 800 });
+      return;
+    }
+    await save({ asiste: true, bebidas, mezclas: {} });
+    state.draft = null;
+    await goTo("final", { wait: 1500 });
+  }),
+  "mixers-ok": () => run(async () => {
+    if (!mixesComplete()) return;
+    const mezclas = {};
+    for (const d of spiritsSelected()) mezclas[d.id] = CONFIG.mezclas.map((m) => m.id).filter((id) => state.mixes[d.id].has(id));
+    await save({ asiste: true, bebidas: [...state.selected], mezclas });
+    state.draft = null;
     await goTo("final", { wait: 1500 });
   }),
   skip: () => run(() => goTo("final")),
@@ -316,7 +375,7 @@ function leaveExperience() {
   stage.classList.remove("on");
   stage.hidden = true;
   delete stage.dataset.scene;
-  state.current = null; state.user = null; state.response = null; state.busy = false; state.opening = false;
+  state.current = null; state.user = null; state.response = null; state.busy = false; state.opening = false; state.draft = null; state.mixes = {};
   resetDoor();
   loginEl.hidden = false;
   void loginEl.offsetWidth;
@@ -345,7 +404,7 @@ $("#btn-reset").addEventListener("click", async () => {
   $$(".scene").forEach((s) => { s.hidden = true; s.classList.remove("shown", "leaving"); });
   $("#btn-change-mind").hidden = true;
   delete stage.dataset.scene;
-  state.current = null; state.response = null; state.selected = new Set(); state.opening = false;
+  state.current = null; state.response = null; state.selected = new Set(); state.draft = null; state.mixes = {}; state.opening = false;
   resetDoor();                                                // puerta cerrada, sin imagen ni música
   state.busy = false;
   await sleep(500);
@@ -416,7 +475,10 @@ function renderAdmin(rows) {
     if (r.asiste) {
       const chips = el("div", "chips");
       if (r.bebidas?.length) {
-        r.bebidas.map(label).filter(Boolean).forEach((d) => chips.append(el("span", "dchip", `${d.icon} ${d.label}`)));
+        r.bebidas.map(label).filter(Boolean).forEach((d) => {
+          const mix = (r.mezclas?.[d.id] || []).map((id) => CONFIG.mezclas.find((m) => m.id === id)?.label).filter(Boolean);
+          chips.append(el("span", "dchip", `${d.icon} ${d.label}${mix.length ? " + " + mix.join(", ") : ""}`));
+        });
       } else chips.append(el("span", "dchip dchip-none", "Sin elegir bebida"));
       who.append(chips);
     } else if (r.email) who.append(el("small", null, r.email));
@@ -432,11 +494,36 @@ function renderAdmin(rows) {
     return g;
   }
 
+  // Combinados: cuántas personas quieren cada destilado con cada acompañante
+  const combos = [];
+  for (const d of CONFIG.bebidas.filter((x) => x.mezcla)) {
+    for (const m of CONFIG.mezclas) {
+      const n = si.filter((r) => r.bebidas?.includes(d.id) && r.mezclas?.[d.id]?.includes(m.id)).length;
+      if (n) combos.push({ d, m, n });
+    }
+  }
+  combos.sort((a, b) => b.n - a.n);
+  const mixBox = el("div");
+  if (combos.length) {
+    mixBox.append(el("h4", null, "Combinados"));
+    const cmax = combos[0].n;
+    for (const c of combos) {
+      const row = el("div", "bar-row");
+      const bar = el("div", "bar"); const fill = el("i"); fill.style.width = `${(c.n / cmax) * 100}%`; bar.append(fill);
+      row.append(el("span", null, `${c.d.icon} ${c.d.label} + ${c.m.label}`), bar, el("b", null, c.n));
+      mixBox.append(row);
+    }
+    const tot = CONFIG.mezclas
+      .map((m) => ({ m, n: combos.filter((c) => c.m.id === m.id).reduce((s, c) => s + c.n, 0) }))
+      .filter((t) => t.n).map((t) => `${t.m.icon} ${t.m.label}: ${t.n}`).join("  ·  ");
+    mixBox.append(el("p", "empty", `Acompañantes pedidos — ${tot}`));
+  }
+
   const people = el("div");
   if (!rows.length) { people.append(el("h4", null, "Personas (0)"), el("p", "empty", "Aún no ha respondido nadie.")); }
   else people.append(group("Asisten", si, "h-si"), group("No asisten", no, "h-no"));
 
-  body.replaceChildren(stats, bars, people);
+  body.replaceChildren(stats, bars, mixBox, people);
 }
 
 setupMusic();

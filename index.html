@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23000'/%3E%3Ccircle cx='16' cy='16' r='8' fill='%23ff2f62'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/style.css?v=20261108l">
+  <link rel="stylesheet" href="css/style.css?v=20261108m">
 </head>
 <body>
 
@@ -115,6 +115,17 @@
         </div>
       </section>
 
+      <!-- Con qué acompañar cada destilado elegido -->
+      <section id="scene-mixers" class="scene" hidden>
+        <h2 class="title reveal">¿Con qué lo acompañas?</h2>
+        <p class="lead reveal">Elige el acompañante de cada bebida. Puedes marcar varios.</p>
+        <div id="mixers" class="mixers reveal"></div>
+        <div class="actions reveal">
+          <button id="btn-mixers-ok" class="btn btn-main" data-action="mixers-ok" type="button" disabled>Confirmar</button>
+        </div>
+        <button class="faint-link reveal" data-action="to-drinks" type="button">Cambiar mis bebidas</button>
+      </section>
+
       <!-- Gracias + ubicación -->
       <section id="scene-final" class="scene" hidden>
         <h2 class="title reveal">Gracias, <span class="name" data-name></span></h2>
@@ -155,6 +166,6 @@
 
   <div id="toast" class="toast" role="status" hidden></div>
 
-  <script type="module" src="js/app.js?v=20261108l"></script>
+  <script type="module" src="js/app.js?v=20261108m"></script>
 </body>
 </html>

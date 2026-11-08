@@ -69,3 +69,11 @@ Colección `respuestas`, un documento por persona (id = uid de Google):
 La cuenta de administrador ve un botón **↺ Reiniciar** arriba. Borra su propia respuesta
 y vuelve a la puerta cerrada, para repetir todo el recorrido las veces que haga falta.
 Para el resto de invitados no existe (la elección es definitiva).
+
+## Bebidas y acompañantes
+
+- Primera elección (multiselección, 2 por fila): Agua, Cerveza, Vino, Vermut, Ginebra, Ron, Whisky, Vodka.
+- Si se elige ginebra, ron, whisky o vodka, aparece una segunda pantalla para elegir con qué acompañarlo
+  (Coca-Cola, Fanta naranja, Fanta limón, Tónica; se pueden marcar varios por bebida).
+- Se guarda en `respuestas/{uid}` como `bebidas: [...]` y `mezclas: { ron: ["cocacola", ...], ... }`.
+- Las opciones se editan en `js/config.js` (`bebidas`, `mezclas`). Si añades o cambias ids, actualiza también `firestore.rules`.

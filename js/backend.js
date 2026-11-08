@@ -1,5 +1,5 @@
 // Capa de datos: Firebase (real) o modo demo (localStorage) si aún no hay configuración.
-import { firebaseConfig } from "./firebase-config.js?v=20261108l";
+import { firebaseConfig } from "./firebase-config.js?v=20261108m";
 
 const SDK = "https://www.gstatic.com/firebasejs/10.12.2";
 const COLECCION = "respuestas";
@@ -36,10 +36,10 @@ async function makeFirebase() {
       return s.exists() ? s.data() : null;
     },
     deleteResponse(uid) { return F.deleteDoc(F.doc(db, COLECCION, uid)); },
-    saveResponse(user, { asiste, bebidas }) {
+    saveResponse(user, { asiste, bebidas, mezclas }) {
       return F.setDoc(F.doc(db, COLECCION, user.uid), {
         nombre: user.nombre, email: user.email, foto: user.foto,
-        asiste, bebidas, actualizado: F.serverTimestamp(),
+        asiste, bebidas, mezclas: mezclas || {}, actualizado: F.serverTimestamp(),
       });
     },
     subscribeAll(cb, onError) {
@@ -65,9 +65,9 @@ function makeDemo() {
       const all = read(); delete all[uid];
       localStorage.setItem(KEY, JSON.stringify(all)); emit();
     },
-    async saveResponse(user, { asiste, bebidas }) {
+    async saveResponse(user, { asiste, bebidas, mezclas }) {
       const all = read();
-      all[user.uid] = { nombre: user.nombre, email: user.email, foto: user.foto, asiste, bebidas };
+      all[user.uid] = { nombre: user.nombre, email: user.email, foto: user.foto, asiste, bebidas, mezclas: mezclas || {} };
       localStorage.setItem(KEY, JSON.stringify(all));
       emit();
     },
