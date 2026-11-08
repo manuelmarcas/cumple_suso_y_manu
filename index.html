@@ -43,6 +43,16 @@
 
     <main id="scenes">
 
+      <!-- Entrada: el toque en el botón da permiso al navegador para reproducir la música -->
+      <section id="scene-intro" class="scene" hidden>
+        <p class="eyebrow reveal">· · ·</p>
+        <h2 class="title reveal">Algo te llama desde la oscuridad</h2>
+        <p class="lead reveal">Sube el volumen. Esta noche se escucha.</p>
+        <div class="actions reveal">
+          <button class="btn btn-main btn-gate" data-action="enter" type="button">Abrir la puerta</button>
+        </div>
+      </section>
+
       <!-- Bienvenida: los textos salen de uno en uno, en el mismo sitio, hasta la pregunta -->
       <section id="scene-welcome" class="scene" data-seq hidden>
         <div class="story">

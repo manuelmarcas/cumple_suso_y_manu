@@ -1,6 +1,6 @@
 import { CONFIG } from "./config.js";
 import { backend, isDemo } from "./backend.js";
-import { setupMusic, stopMusic } from "./music.js";
+import { setupMusic, startMusic, stopMusic } from "./music.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -8,7 +8,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const FADE_OUT_MS = 2900;      // duración de la ráfaga de viento que se lleva los textos
 const REVEAL_STEP_S = 2.7;     // segundos entre cada texto que aparece (antes 1.7: +1 s)
-const STEP_BY_SCENE = { plan: 2.1, drinks: 2.2, final: 2.4 };
+const STEP_BY_SCENE = { intro: 1.2, plan: 2.1, drinks: 2.2, final: 2.4 };
 const REVEAL_START_S = 0.6;
 const SPLIT_SEL = ".eyebrow, .title, .lead, .question, .warning, .plan li > b, .plan li > span, .seq";
 
@@ -204,6 +204,10 @@ async function run(fn) {
 
 /* ---------- Acciones ---------- */
 const actions = {
+  enter: () => {
+    startMusic();                      // dentro del gesto del usuario: el navegador lo permite
+    return run(() => goTo(routeScene()));
+  },
   yes: () => run(async () => {
     await save({ asiste: true });
     await goTo("plan", { wait: 3000 });
@@ -266,10 +270,15 @@ async function enterExperience(user) {
   stage.classList.add("on");           // 1º se carga la imagen (y la niebla)
   await sleep(2200);                   // 2º empiezan a aparecer los textos
 
+  return goTo("intro");                // pantalla de entrada: aquí se da el primer toque (música)
+}
+
+// Escena que toca según lo que la persona ya haya respondido
+function routeScene() {
   const r = state.response;
-  if (!r) return goTo("welcome");
-  if (r.asiste === false) return goTo("farewell");
-  return goTo(r.bebidas?.length ? "final" : "drinks");
+  if (!r) return "welcome";
+  if (r.asiste === false) return "farewell";
+  return r.bebidas?.length ? "final" : "drinks";
 }
 
 function leaveExperience() {
