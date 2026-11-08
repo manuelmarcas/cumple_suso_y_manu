@@ -171,10 +171,29 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .btn-main:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 34px rgba(255, 47, 98, .75); }
 .btn-main:disabled { opacity: .35; cursor: not-allowed; box-shadow: none; }
 .btn-wa {
-  background: rgba(10, 6, 20, .72); border-color: #25d366; color: #b8f5cf;
-  box-shadow: 0 0 16px rgba(37, 211, 102, .25);
+  position: relative; overflow: hidden; isolation: isolate;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 16px 20px; border-radius: 2px;
+  background: linear-gradient(180deg, rgba(18, 8, 34, .82), rgba(6, 3, 14, .9));
+  border: 1px solid rgba(190, 140, 255, .45); color: #e9dcff;
+  box-shadow: 0 0 22px rgba(150, 70, 255, .28), inset 0 0 18px rgba(150, 70, 255, .12);
+  animation: breathe 4.5s ease-in-out infinite;
 }
-.btn-wa:hover { background: rgba(37, 211, 102, .18); box-shadow: 0 0 26px rgba(37, 211, 102, .5); }
+.btn-wa .wa-rune { font-size: 1.15rem; color: #ff7b98; text-shadow: 0 0 14px rgba(255, 60, 100, .9); line-height: 1; }
+.btn-wa .wa-main { font-size: .95rem; letter-spacing: .26em; }
+.btn-wa .wa-sub {
+  font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; text-transform: none;
+  letter-spacing: .03em; font-size: 1rem; line-height: 1.3; color: #b9a7d9;
+}
+/* destello que cruza el botón como una luz entre la niebla */
+.btn-wa::before {
+  content: ""; position: absolute; z-index: -1; top: 0; bottom: 0; left: -60%; width: 45%;
+  background: linear-gradient(100deg, transparent, rgba(200, 150, 255, .22), transparent);
+  transform: skewX(-18deg); animation: sheen 6s ease-in-out infinite;
+}
+.btn-wa:hover { border-color: #ff7b98; box-shadow: 0 0 34px rgba(255, 60, 100, .5), inset 0 0 22px rgba(255, 60, 100, .18); transform: translateY(-2px); }
+@keyframes breathe { 0%, 100% { box-shadow: 0 0 16px rgba(150, 70, 255, .22), inset 0 0 14px rgba(150, 70, 255, .1); } 50% { box-shadow: 0 0 30px rgba(190, 90, 255, .5), inset 0 0 22px rgba(190, 90, 255, .2); } }
+@keyframes sheen { 0%, 55% { left: -60%; } 100% { left: 130%; } }
 .btn-ghost { background: rgba(10,6,20,.5); border-color: rgba(255,255,255,.3); color: #ddd; }
 .btn-ghost:hover { border-color: #fff; color: #fff; }
 
