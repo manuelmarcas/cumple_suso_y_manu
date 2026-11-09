@@ -1,6 +1,6 @@
-import { CONFIG } from "./config.js?v=20261108p";
-import { backend, isDemo } from "./backend.js?v=20261108p";
-import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261108p";
+import { CONFIG } from "./config.js?v=20261109a";
+import { backend, isDemo } from "./backend.js?v=20261109a";
+import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261109a";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -29,7 +29,7 @@ const isAdmin = (u) => !!u && CONFIG.admins.map((e) => e.toLowerCase()).includes
 const canSeeVotes = () => isAdmin(state.user) || state.current === "final";
 function updateTopbar() {
   $("#btn-admin").hidden = !canSeeVotes();
-  $("#btn-reset").hidden = !isAdmin(state.user);
+  $("#btn-reset").hidden = !state.user;
   if ($("#btn-admin").hidden) closeAdmin();
 }
 const firstName = (u) => (u.nombre || u.email || "").trim().split(/\s+/)[0] || "viajero";
@@ -395,15 +395,15 @@ backend.onAuth((user) => {
   else if (!user && lastUid) { lastUid = null; leaveExperience(); }
 });
 
-/* ---------- Reiniciar (solo admin, para probar el flujo desde cero) ---------- */
+/* ---------- Reiniciar (para todos): borra la propia respuesta y vuelve a la puerta ---------- */
 $("#btn-reset").addEventListener("click", async () => {
-  if (!isAdmin(state.user) || state.busy) return;
-  if (!confirm("¿Borrar tu respuesta y empezar de cero? (solo para pruebas)")) return;
+  if (!state.user || state.busy) return;
+  if (!confirm("¿Borrar tu respuesta y empezar de cero?")) return;
   state.busy = true;
   try { await backend.deleteResponse(state.user.uid); }
   catch (e) {
     console.error(e); state.busy = false;
-    return toast("No se pudo reiniciar. Revisa que las reglas de Firestore estén publicadas.");
+    return toast("No se pudo reiniciar. Inténtalo de nuevo en un rato.");
   }
   closeAdmin();
   state.storyToken++; state.tap = null;                       // corta la historia si estaba en marcha

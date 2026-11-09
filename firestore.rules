@@ -42,7 +42,8 @@ service cloud.firestore {
       allow update: if isAdmin()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['asiste', 'actualizado'])
         && request.resource.data.asiste == false;
-      allow delete: if isAdmin();
+      // Cada persona puede borrar la suya (botón "Reiniciar"); los admins, cualquiera
+      allow delete: if request.auth != null && (request.auth.uid == uid || isAdmin());
     }
 
     // Todo lo demás, cerrado.
