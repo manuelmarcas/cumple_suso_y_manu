@@ -62,6 +62,10 @@ Colección `respuestas`, un documento por persona (id = uid de Google):
 ## Notas
 
 - Desde navegadores integrados (WhatsApp, Instagram) Google bloquea el login: abrir en Chrome/Safari.
+- Login fiable en iPhone: si en Safari sale "Unable to process request due to missing initial state", rellena
+  `googleClientId` en `js/firebase-config.js` (ID de cliente web de Firebase) y añade
+  `https://manuelmarcas.github.io` en "Orígenes de JavaScript autorizados" de ese cliente (Google Cloud Console →
+  APIs y servicios → Credenciales). Así el login usa la ventana de Google directamente, sin la página de Firebase.
 - Cualquier cuenta de Google puede responder. Si quieres limitarlo a una lista de invitados, hay que añadir una lista de emails a las reglas.
 
 ## Empezar de cero

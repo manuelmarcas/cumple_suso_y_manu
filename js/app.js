@@ -1,6 +1,6 @@
-import { CONFIG } from "./config.js?v=20261109a";
-import { backend, isDemo } from "./backend.js?v=20261109a";
-import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261109a";
+import { CONFIG } from "./config.js?v=20261111a";
+import { backend, isDemo } from "./backend.js?v=20261111a";
+import { setupMusic, startMusic, stopMusic } from "./music.js?v=20261111a";
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -336,7 +336,9 @@ $("#btn-google").addEventListener("click", async (e) => {
       console.error(ex);
       err.textContent = ex?.code === "auth/unauthorized-domain"
         ? "Este dominio no está autorizado en Firebase (Authentication → Configuración → Dominios autorizados)."
-        : "No se pudo iniciar sesión. Inténtalo de nuevo.";
+        : ex?.code === "auth/popup-blocked"
+          ? "Tu navegador ha bloqueado la ventana de Google. Permite las ventanas emergentes para esta página e inténtalo de nuevo."
+          : "No se pudo iniciar sesión. Si abriste el enlace desde WhatsApp o Instagram, ábrelo en Safari o Chrome e inténtalo de nuevo.";
       err.hidden = false;
     }
   } finally { btn.disabled = false; }

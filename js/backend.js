@@ -1,5 +1,5 @@
 // Capa de datos: Firebase (real) o modo demo (localStorage) si aún no hay configuración.
-import { firebaseConfig } from "./firebase-config.js?v=20261109a";
+import { firebaseConfig, googleClientId } from "./firebase-config.js?v=20261111a";
 
 const SDK = "https://www.gstatic.com/firebasejs/10.12.2";
 const COLECCION = "respuestas";
@@ -18,15 +18,50 @@ async function makeFirebase() {
   const provider = new A.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: "select_account" });
 
+  // Login con la ventana de Google (Google Identity Services) -> credencial de Firebase.
+  // Evita la página intermedia de Firebase, que en Safari/iPhone falla con "missing initial state".
+  const gis = googleClientId ? new Promise((res) => {
+    const s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client"; s.async = true;
+    s.onload = () => res(true); s.onerror = () => res(false);
+    document.head.append(s);
+  }) : Promise.resolve(false);
+  let gisOk = false;
+  gis.then((ok) => { gisOk = ok && !!window.google?.accounts?.oauth2; });
+
+  function gisToken() {
+    return new Promise((resolve, reject) => {
+      const fail = (code) => reject(Object.assign(new Error(code), { code }));
+      const client = window.google.accounts.oauth2.initTokenClient({
+        client_id: googleClientId,
+        scope: "openid email profile",
+        prompt: "select_account",
+        callback: (r) => (r.access_token ? resolve(r.access_token)
+          : fail(r.error === "access_denied" ? "auth/popup-closed-by-user" : `auth/gis-${r.error || "error"}`)),
+        error_callback: (e) => fail(e?.type === "popup_closed" ? "auth/popup-closed-by-user"
+          : e?.type === "popup_failed_to_open" ? "auth/popup-blocked" : `auth/gis-${e?.type || "error"}`),
+      });
+      client.requestAccessToken();      // debe ejecutarse dentro del toque del usuario (abre la ventana)
+    });
+  }
+
+  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
   const pick = (u) => u && { uid: u.uid, nombre: u.displayName || "", email: u.email || "", foto: u.photoURL || null };
 
   return {
     onAuth(cb) { return A.onAuthStateChanged(auth, (u) => cb(pick(u))); },
     async signIn() {
+      if (gisOk) {
+        const token = await gisToken();
+        await A.signInWithCredential(auth, A.GoogleAuthProvider.credential(null, token));
+        return;
+      }
       try {
         await A.signInWithPopup(auth, provider);
       } catch (e) {
-        if (e.code === "auth/popup-blocked") return A.signInWithRedirect(auth, provider);
+        // La redirección de Firebase no funciona en Safari/iPhone (almacenamiento particionado): no se usa ahí.
+        if (e.code === "auth/popup-blocked" && !isIOS) return A.signInWithRedirect(auth, provider);
         throw e;
       }
     },

@@ -11,3 +11,10 @@ export const firebaseConfig = {
   messagingSenderId: "233302776798",
   appId: "1:233302776798:web:1939ee9839d86b866f5b4f",
 };
+
+// ID de cliente web de Google (Firebase → Authentication → Método de inicio de sesión → Google →
+// "Configuración del SDK web" → ID de cliente web). Si se rellena, el login usa la ventana de
+// Google directamente (más fiable en iPhone/Safari). Requiere añadir https://manuelmarcas.github.io
+// en "Orígenes de JavaScript autorizados" de ese cliente en Google Cloud Console → Credenciales.
+// Si se deja vacío, se usa el login estándar de Firebase.
+export const googleClientId = "";
